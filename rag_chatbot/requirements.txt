@@ -1,0 +1,14 @@
+langchain
+langchain-community
+langchain-core
+langchain-google-genai
+faiss-cpu
+sentence-transformers
+python-dotenv
+beautifulsoup4
+lxml
+markdownify
+unstructured[md]
+langchain-huggingface
+fastapi
+uvicorn

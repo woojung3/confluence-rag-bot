@@ -1,0 +1,506 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAM연구소 도우미</title>
+    <style>
+        :root {
+            --border-color: #e0e0e0;
+            --sidebar-bg: #f8f9fa;
+            --body-bg: #ffffff;
+            --text-color: #212529;
+            --link-color: #007bff;
+            --user-msg-bg: #007bff;
+            --user-msg-text: #ffffff;
+            --bot-msg-bg: #e9ecef;
+            --bot-msg-text: #212529;
+            --code-bg: #f1f1f1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--body-bg);
+            color: var(--text-color);
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .sidebar #topic-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+        .sidebar #topic-list li {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .sidebar #topic-list li:hover {
+            background-color: #e9ecef;
+        }
+        .sidebar #topic-list li.active {
+            background-color: var(--link-color);
+            color: white;
+            font-weight: bold;
+        }
+        .mode-selection label {
+            display: block;
+            margin-bottom: 5px; /* Add some spacing between the labels */
+        }
+        
+        .sidebar .info {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .sidebar .warning-message {
+            font-size: 0.8rem;
+            background-color: #fff3cd;
+            color: #664d03;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            line-height: 1.4;
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            text-align: center;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message.user {
+            align-items: flex-end;
+        }
+        .message.bot {
+            align-items: flex-start;
+        }
+        .message .content {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            line-height: 1.5;
+        }
+        .message.user .content {
+            background-color: var(--user-msg-bg);
+            color: var(--user-msg-text);
+            border-bottom-right-radius: 3px;
+        }
+        .message.bot .content {
+            background-color: var(--bot-msg-bg);
+            color: var(--bot-msg-text);
+            border-bottom-left-radius: 3px;
+        }
+        .message.bot .content p:last-child {
+            margin-bottom: 0;
+        }
+        .message.bot .content a {
+            color: var(--link-color);
+        }
+        .message.bot .content pre {
+            background-color: var(--code-bg);
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .message.bot .content .mermaid-chart {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .message.bot .content .mermaid-error {
+            background-color: #fff3cd;
+            color: #664d03;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .chat-input form {
+            display: flex;
+        }
+        .chat-input textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-right: 10px;
+            resize: vertical;
+            min-height: 40px;
+            max-height: 150px;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: 1.5;
+        }
+        .chat-input button {
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--link-color);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .typing-indicator {
+            padding: 10px 15px;
+            background-color: var(--bot-msg-bg);
+            border-radius: 15px;
+            align-self: flex-start;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #999;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.3s infinite;
+        }
+        .typing-indicator span:nth-of-type(2) { animation-delay: 0.15s; }
+        .typing-indicator span:nth-of-type(3) { animation-delay: 0.3s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>주제 선택</h2>
+    <ul id="topic-list"></ul>
+
+    <div class="mode-selection">
+        <h3>대화 모드</h3>
+        <label>
+            <input type="radio" name="chatMode" value="rag_single_turn" checked> 단일 질문 (빠른 응답)
+        </label>
+        <label>
+            <input type="radio" name="chatMode" value="rag_multi_turn"> 연속 대화 (느린 응답)
+        </label>
+    </div>
+
+    <div class="info" id="db-info">
+        DB 정보 로딩 중...
+    </div>
+    <div class="warning-message">
+        이 챗봇은 대화를 저장하지 않습니다. 새로고침시 모든 채팅 기록은 사라집니다.
+    </div>
+</div>
+
+<div class="chat-container">
+    <div class="chat-header" id="chat-header">주제를 선택해주세요</div>
+    <div class="chat-messages" id="chat-messages">
+        <!-- Messages will be appended here -->
+    </div>
+    <div class="chat-input">
+        <form id="chat-form">
+            <textarea id="message-input" placeholder="메시지를 입력하세요..." autocomplete="off" disabled></textarea>
+            <button type="submit" disabled>전송</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Configure marked.js to open links in new tabs
+        const renderer = new marked.Renderer();
+        renderer.link = function(href, title, text) {
+            const link = marked.Renderer.prototype.link.call(this, href, title, text);
+            return link.replace('<a', '<a target="_blank" rel="noopener noreferrer"');
+        };
+        marked.setOptions({
+            renderer: renderer
+        });
+
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+
+        const topicList = document.getElementById('topic-list');
+        const chatHeader = document.getElementById('chat-header');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const submitButton = chatForm.querySelector('button');
+        const dbInfo = document.getElementById('db-info');
+
+        let currentTopic = null;
+        let chatHistory = [];
+        const modeRadios = document.querySelectorAll('input[name="chatMode"]');
+        let currentMode = 'rag_single_turn'; // Default mode
+
+        async function loadTopics() {
+            try {
+                const response = await fetch('/topics');
+                const topics = await response.json();
+                topicList.innerHTML = '';
+                topics.forEach(topic => {
+                    const li = document.createElement('li');
+                    li.textContent = topic;
+                    li.dataset.topic = topic;
+                    li.addEventListener('click', () => selectTopic(topic));
+                    topicList.appendChild(li);
+                });
+                if (topics.length > 0) {
+                    selectTopic(topics[0]);
+                }
+            } catch (error) {
+                console.error('Error loading topics:', error);
+                chatHeader.textContent = '주제 로딩 실패';
+            }
+        }
+
+        async function loadDbInfo() {
+            try {
+                const response = await fetch('/info');
+                const info = await response.json();
+                if (info.index_last_updated) {
+                    const date = new Date(info.index_last_updated);
+                    dbInfo.textContent = `DB 최종 업데이트: ${date.toLocaleString('ko-KR')}`;
+                } else {
+                    dbInfo.textContent = 'DB 정보 없음';
+                }
+            } catch (error) {
+                console.error('Error loading DB info:', error);
+                dbInfo.textContent = 'DB 정보를 가져올 수 없습니다.';
+            }
+        }
+
+        function selectTopic(topic) {
+            currentTopic = topic;
+            chatHeader.textContent = `${topic}`;
+            
+            Array.from(topicList.children).forEach(li => {
+                li.classList.toggle('active', li.dataset.topic === topic);
+            });
+
+            chatMessages.innerHTML = '';
+            chatHistory = [];
+            addMessage('bot', `안녕하세요! '${topic}' 주제에 대해 무엇이든 물어보세요.`);
+            messageInput.disabled = false;
+            submitButton.disabled = false;
+            messageInput.focus();
+        }
+
+        modeRadios.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                currentMode = event.target.value;
+                chatMessages.innerHTML = ''; // Clear chat messages on any mode change
+                chatHistory = [];           // Clear chat history on any mode change
+
+                if (currentMode === 'rag_single_turn') {
+                    addMessage('bot', `대화 모드가 '단일 질문 (빠른 응답)'으로 변경되었습니다. 이전 대화는 기억되지 않습니다.`);
+                } else { // This is the 'rag_multi_turn' case
+                    addMessage('bot', `대화 모드가 '연속 대화 (느린 응답)'으로 변경되었습니다. 이전 대화는 기억되지 않습니다. 새로운 대화를 시작합니다.`);
+                }
+            });
+        });
+
+        async function renderMermaidCharts(container) {
+            const mermaidCodeElements = container.querySelectorAll('code.language-mermaid');
+            
+            for (const codeElement of mermaidCodeElements) {
+                const preElement = codeElement.parentElement; // This is the <pre> element
+                if (preElement.dataset.mermaidProcessed) {
+                    continue;
+                }
+                preElement.dataset.mermaidProcessed = 'true';
+
+                const chartId = `mermaid-chart-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                
+                console.log(`Mermaid: Attempting to render chart for ID: ${chartId}`);
+                try {
+                    const { svg } = await mermaid.render(chartId, codeElement.textContent);
+                    console.log(`Mermaid: Rendered SVG length: ${svg ? svg.length : 'null'}`);
+                    
+                    const renderedDiv = document.createElement('div');
+                    renderedDiv.classList.add('mermaid-chart'); // Apply styling
+                    renderedDiv.innerHTML = svg;
+                    
+                    preElement.parentNode.replaceChild(renderedDiv, preElement);
+                    console.log(`Mermaid: Successfully replaced preElement with rendered chart for ID: ${chartId}`);
+
+                } catch (e) {
+                    console.error("Mermaid rendering error in catch block:", e);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.classList.add('mermaid-error');
+                    errorDiv.innerHTML = `Mermaid 렌더링 오류가 발생했습니다:<br><pre>${e.message}</pre>`;
+                    preElement.parentNode.replaceChild(errorDiv, preElement);
+                }
+            }
+        }
+
+        function addMessage(role, content) { // Removed mode parameter
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', role);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('content');
+            
+            if (role === 'bot') {
+                contentDiv.innerHTML = marked.parse(content);
+            } else {
+                contentDiv.textContent = content;
+            }
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (role === 'bot') { // Always render mermaid charts if bot message
+                renderMermaidCharts(contentDiv);
+            }
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.classList.add('message', 'bot');
+            indicator.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+            indicator.id = 'typing-indicator';
+            chatMessages.appendChild(indicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const userInput = messageInput.value.trim();
+            if (!userInput || !currentTopic) return;
+
+            addMessage('user', userInput);
+            
+            // Only add to history if in multi-turn mode
+            if (currentMode === 'rag_multi_turn') {
+                chatHistory.push({role: 'user', content: userInput});
+            }
+            
+            messageInput.value = '';
+            showTypingIndicator();
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.log('Timeout triggered, aborting fetch request.');
+                controller.abort();
+            }, 30000); // 30 seconds timeout
+
+            try {
+                const requestBody = {
+                    query: userInput,
+                    topic: currentTopic,
+                    mode: currentMode,
+                };
+
+                // Only send history if in multi-turn mode
+                if (currentMode === 'rag_multi_turn') {
+                    requestBody.history = chatHistory.slice(0, -1); // Send history *before* the current question
+                } else {
+                    requestBody.history = []; // Explicitly send empty history for single turn
+                }
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                    signal: controller.signal // Pass the abort signal
+                });
+
+                clearTimeout(timeoutId); // Clear timeout if fetch completes before timeout
+                removeTypingIndicator();
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                addMessage('bot', result.answer); // Mode parameter removed from addMessage
+                
+                // Only add bot response to history if in multi-turn mode
+                if (currentMode === 'rag_multi_turn') {
+                    chatHistory.push({role: 'assistant', content: result.answer});
+                }
+
+            } catch (error) {
+                clearTimeout(timeoutId); // Ensure timeout is cleared even on error
+                removeTypingIndicator();
+                console.error('Error during chat:', error);
+                let errorMessage = `죄송합니다, 답변을 생성하는 중에 오류가 발생했습니다: ${error.message}`;
+                if (error.name === 'AbortError') {
+                    console.log('Fetch request aborted due to timeout.');
+                    errorMessage = '요청 시간이 초과되었습니다. 네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    console.log('Fetch request failed, likely network issue.');
+                    errorMessage = '서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.';
+                }
+                addMessage('bot', errorMessage);
+            }
+        }
+
+        messageInput.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+                e.preventDefault(); // Prevent default Enter behavior (newline)
+                await sendMessage(); // Call the new function directly
+            }
+        });
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Always prevent default form submission
+            await sendMessage(); // Call the new function directly
+        });
+
+        loadTopics();
+        loadDbInfo();
+    });
+</script>
+
+</body>
+</html>
