@@ -125,44 +125,46 @@ uvicorn rag_chatbot.main:app --reload
 Confluence 페이지와 모든 하위 페이지를 내보내려면 다음 명령을 사용하십시오. Atlassian 사용자 이름(이메일)과 API 토큰을 묻는 메시지가 표시됩니다.
 
 ```bash
-.venv/bin/confluence-markdown-exporter pages-with-descendants <page-url> <output-path>
+.venv/bin/confluence-markdown-exporter pages-with-descendants <page-url> output/
 ```
 **참고**: `confluence-markdown-exporter` 패키지는 프로젝트 루트의 `requirements.txt`를 통해 설치됩니다.
 
 ### 예시
 
 ```bash
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089320505/1.1.' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089615431/OKR' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089517115/1.3.' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089549921/1.5.' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089517138/1.7.' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089386001/2.0.' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2571239425/EU25+Product+Plan' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2619343702/2024+AutoCrypt+PKI-V2X' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/1819934721/2025+AutoCrypt+PKI-Vehicles' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2571141121/2025' --output-path ./output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089549827/3.' --output-path ./output/
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089320505/1.1.' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089615431/OKR' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089517115/1.3.' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089549921/1.5.' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089517138/1.7.' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089386001/2.0.' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2571239425/EU25+Product+Plan' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2619343702/2024+AutoCrypt+PKI-V2X' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/1819934721/2025+AutoCrypt+PKI-Vehicles' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2571141121/2025' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089549827/3.' --output-path output/
 ```
 
 ## 추출된 문서 정제 (매크로 제거)
 
-Confluence에서 문서를 추출한 후, FAISS 데이터베이스 구축 전에 불필요한 Confluence 매크로 관련 텍스트나 HTML `details` 태그를 제거하여 데이터를 정제해야 합니다. 이를 위해 `exporter/remove_macros.sh` 스크립트를 사용합니다.
-Confluence 문서 추출이 완료되어 `exporter/output/` 경로에 Markdown 파일들이 생성된 후에 실행해야 합니다.
+Confluence에서 문서를 추출한 후, FAISS 데이터베이스 구축 전에 불필요한 Confluence 매크로 관련 텍스트나 HTML `details` 태그를 제거하여 데이터를 정제해야 합니다. 이를 위해 `remove_macros.sh` 스크립트를 사용합니다.
+Confluence 문서 추출이 완료되어 `output/` 경로에 Markdown 파일들이 생성된 후에 실행해야 합니다.
 
 **사용법**:
 
 ```bash
-./exporter/remove_macros.sh output/
+./remove_macros.sh output/
 ```
 
 ## 프로젝트 구조
 
 ```
 .
+├── .venv/                    # Python 가상 환경
 ├── requirements.txt          # Python 의존성 목록
 ├── output/                   # Confluence 문서 추출 공간
 ├── build_db.py               # FAISS DB 구축 스크립트
+├── remove_macros.sh          # 추출된 문서 정제 스크립트
 ├── faiss_indexes/            # 주제별 FAISS 벡터 데이터베이스 저장소
 │   ├── 기술_규정_도우미/
 │   ├── 연구소_생활_도우미/
