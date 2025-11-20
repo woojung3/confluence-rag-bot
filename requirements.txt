@@ -12,3 +12,4 @@ unstructured[md]
 langchain-huggingface
 fastapi
 uvicorn
+confluence-markdown-exporter

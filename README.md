@@ -51,6 +51,12 @@
     ```bash
     pip install -r requirements.txt
     ```
+    [warning]
+    **주의**: `confluence-markdown-exporter` 라이브러리의 알려진 재귀 오류를 해결하기 위해 수동 패치가 필요합니다. `confluence.py` 파일(`~/.venv/lib/python3.13/site-packages/confluence_markdown_exporter/confluence.py`)의 `convert_a` 함수에 재귀 가드(recursion guard)를 추가해야 합니다. 이 수정은 가상 환경을 재생성하거나 라이브러리를 업데이트할 때 덮어씌워질 수 있으므로 주의하십시오. 자세한 패치 내용은 다음을 참조하십시오:
+    *   `confluence.py` 파일 상단에 `MAX_RECURSION_DEPTH = 10` 추가
+    *   `convert_a` 함수 시그니처를 `def convert_a(self, el: BeautifulSoup, text: str, parent_tags: list[str], depth: int = 0) -> str:`로 변경
+    *   `convert_a` 함수 시작 부분에 `if depth > MAX_RECURSION_DEPTH: logger.warning(...) return f"[[{text}]]"` 추가
+    *   재귀 호출 부분 `return self.convert_a(fallback, text, parent_tags)`를 `return self.convert_a(fallback, text, parent_tags, depth=depth + 1)`로 변경
 
 ## 챗봇 설정 및 데이터베이스 구축
 
@@ -138,10 +144,11 @@ Confluence 페이지와 모든 하위 페이지를 내보내려면 다음 명령
 .venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089549921/1.5.' --output-path output/ &&
 .venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089517138/1.7.' --output-path output/ &&
 .venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089386001/2.0.' --output-path output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2571239425/EU25+Product+Plan' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/1772650979/2024+AutoCrypt+V2X-EE' --output-path output/ &&
 .venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2619343702/2024+AutoCrypt+PKI-V2X' --output-path output/ &&
 .venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/1819934721/2025+AutoCrypt+PKI-Vehicles' --output-path output/ &&
-.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2571141121/2025' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2571239425/EU25+Product+Plan' --output-path output/ &&
+.venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/1786183699/2024+-' --output-path output/ &&
 .venv/bin/confluence-markdown-exporter pages-with-descendants 'https://auto-jira.atlassian.net/wiki/spaces/camlab/pages/2089549827/3.' --output-path output/
 ```
 
