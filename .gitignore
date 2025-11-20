@@ -16,3 +16,6 @@ chat_log.log
 
 # Exporter output
 output/
+
+# obsidian
+obsidian/
