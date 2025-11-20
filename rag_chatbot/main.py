@@ -196,9 +196,13 @@ async def handle_rag_chat(request: ChatRequest, topic_name: str):
     base_prompt = config["prompt"]
     
     rag_instructions = [
-        "RAG로 찾아낸 컨텍스트(context) 내용 중 답변과 관련이 깊은 Mermaid 차트가 있다면, 해당 차트의 원본 코드를 답변에 반드시 포함시켜 주세요. 만약 컨텍스트에서 Mermaid 차트를 찾지 못했다면, 절대로 스스로 차트를 만들지 마세요.", 
+        "RAG로 찾아낸 컨텍스트(context) 내용 중 답변과 관련이 깊은 Mermaid 차트가 있다면, 해당 차트의 원본 코드를 답변에 반드시 포함시켜 주세요. 만약 컨텍스트에서 Mermaid 차트를 찾지 못했다면, 절대로 스스로 차트를 만들지 마세요.",
         "답변에 사용된 컨텍스트의 출처를 답변 하단에 '--- 출처 ---' 섹션을 만들고, 각 출처를 목록 형태로 명확하게 제시해주세요. 출처가 여러 개일 경우 모두 포함해야 하며, 링크가 걸려 있어야 합니다."
     ]
+
+    # '소장 옵시디언' 토픽의 경우, 출처 기재를 요청하지 않음
+    if topic_name == "소장 옵시디언":
+        rag_instructions.pop()
 
     final_template = (
         base_prompt +
